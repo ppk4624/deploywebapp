@@ -1,0 +1,40 @@
+---
+  # roles/auto-scaling/tasks/main.yml
+
+  - name: Configure Auto Scaling Group and perform rolling deploy
+    ec2_asg:
+      region: "{{ region }}"
+      name: my-webapp-asg
+      launch_config_name: "my-webapp-lc"
+      availability_zones: "{{ zone }}"
+      health_check_type: ELB
+      health_check_period: 300
+      desired_capacity: 1
+      min_size: 1
+      max_size: 5
+      load_balancers: my-webapp-lb
+      state: present
+    register: asg_result
+
+  - name: Configure Scaling Policies
+    ec2_scaling_policy:
+      region: "{{ region }}"
+      name: "{{ item.name }}"
+      asg_name: my-webapp-asg
+      state: present
+      adjustment_type: "{{ item.adjustment_type }}"
+      min_adjustment_step: "{{ item.min_adjustment_step }}"
+      scaling_adjustment: "{{ item.scaling_adjustment }}"
+      cooldown: "{{ item.cooldown }}"
+    with_items:
+      - name: "Increase Group Size"
+        adjustment_type: "ChangeInCapacity"
+        scaling_adjustment: +1
+        min_adjustment_step: 1
+        cooldown: 180
+      - name: "Decrease Group Size"
+        adjustment_type: "ChangeInCapacity"
+        scaling_adjustment: -1
+        min_adjustment_step: 1
+        cooldown: 300
+    register: sp_result

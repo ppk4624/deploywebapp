@@ -1,0 +1,11 @@
+---
+  # group_vars/all.yml
+
+  region: us-east-1
+  zone: us-east-1a
+  keypair: mykeypair
+  instance_type: t2.micro
+  ami_id: ami-6869aa05
+  security_groups: demo-sec-grp
+  ssl_cert: arn:aws:iam::711710083255:server-certificate/server
+  new_ami_name: test-web-app-ami

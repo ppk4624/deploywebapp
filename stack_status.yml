@@ -1,0 +1,39 @@
+---
+  - hosts: all
+    become: true
+    tasks:
+      - name: verify httpd service
+        command: service httpd status
+
+  - hosts: all
+    connection: local
+    gather_facts: true
+    tasks:
+      - name: gather elb facts
+        ec2_elb_facts:
+          region: "{{ region }}"
+        register: elb_facts
+
+      - uri:
+          name: validate http URL
+          url: http://{{ elb_facts.elbs.0.dns_name }}
+          method: GET
+          validate_certs: no
+          return_content: yes
+          status_code: 200
+        register: http_resp
+
+      - fail: msg='app not reachable'
+        when: "'Hello' not in http_resp.content"
+
+      - uri:
+          name: validate https URL
+          url: https://{{ elb_facts.elbs.0.dns_name }}
+          method: GET
+          validate_certs: no
+          return_content: yes
+          status_code: 200
+        register: https_resp
+
+      - fail: msg='app not reachable'
+        when: "'Hello' not in https_resp.content"

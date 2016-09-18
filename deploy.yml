@@ -1,0 +1,10 @@
+---
+  # deploy.yml
+  
+  - hosts: localhost
+    connection: local
+    gather_facts: no
+    roles:
+      - launch-configuration
+      - load-balancer
+      - auto-scaling
